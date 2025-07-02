@@ -7,20 +7,20 @@ import (
 )
 
 type ParsedProduct struct {
-	CleanProductId string  `json:"clean_product_id"`
+	CleanProductId string  `json:"cleanProductId"`
 	Quantity       int     `json:"quantity"`
-	OriginalQty    int     `json:"original_qty"`
-	UnitPrice      float64 `json:"unit_price"`
-	TotalPrice     float64 `json:"total_price"`
+	OriginalQty    int     `json:"originalQty"`
+	UnitPrice      float64 `json:"unitPrice"`
+	TotalPrice     float64 `json:"totalPrice"`
 }
 
 type Product struct {
-	ProductId  string  `json:"product_id"`
-	MaterialId string  `json:"material_id"`
-	ModelId    string  `json:"model_id"`
+	ProductId  string  `json:"productId"`
+	MaterialId string  `json:"materialId"`
+	ModelId    string  `json:"modelId"`
 	Quantity   int     `json:"quantity"`
-	UnitPrice  float64 `json:"unit_price"`
-	TotalPrice float64 `json:"total_price"`
+	UnitPrice  float64 `json:"unitPrice"`
+	TotalPrice float64 `json:"totalPrice"`
 }
 
 func NewProduct(productId string, quantity int, unitPrice, totalPrice float64) (*Product, error) {

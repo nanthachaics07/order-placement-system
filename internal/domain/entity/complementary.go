@@ -12,12 +12,12 @@ const (
 )
 
 type ComplementaryItem struct {
-	ProductId string `json:"product_id"`
+	ProductId string `json:"productId"`
 	Quantity  int    `json:"quantity"`
 }
 
 type ComplementaryCalculation struct {
-	WipingCloth *ComplementaryItem            `json:"wiping_cloth"`
+	WipingCloth *ComplementaryItem            `json:"wipingCloth"`
 	Cleaners    map[string]*ComplementaryItem `json:"cleaners"`
 }
 

@@ -7,20 +7,20 @@ import (
 
 type InputOrder struct {
 	No                int     `json:"no"`
-	PlatformProductId string  `json:"platform_product_id"`
+	PlatformProductId string  `json:"platformProductId"`
 	Qty               int     `json:"qty"`
-	UnitPrice         float64 `json:"unit_price"`
-	TotalPrice        float64 `json:"total_price"`
+	UnitPrice         float64 `json:"unitPrice"`
+	TotalPrice        float64 `json:"totalPrice"`
 }
 
 type CleanedOrder struct {
 	No         int     `json:"no"`
-	ProductId  string  `json:"product_id"`
-	MaterialId string  `json:"material_id,omitempty"`
-	ModelId    string  `json:"model_id,omitempty"`
+	ProductId  string  `json:"productId"`
+	MaterialId string  `json:"materialId,omitempty"`
+	ModelId    string  `json:"modelId,omitempty"`
 	Qty        int     `json:"qty"`
-	UnitPrice  float64 `json:"unit_price"`
-	TotalPrice float64 `json:"total_price"`
+	UnitPrice  float64 `json:"unitPrice"`
+	TotalPrice float64 `json:"totalPrice"`
 }
 
 type OrderBatch struct {
