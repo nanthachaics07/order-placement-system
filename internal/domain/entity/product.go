@@ -40,7 +40,7 @@ func NewProduct(productId string, quantity int, unitPrice, totalPrice float64) (
 	}, nil
 }
 
-// "material-model-texture"
+// material-model-texture
 func parseProductCode(productId string) (materialId, modelId string, err error) {
 	if productId == "" {
 		log.Error("Product ID is empty")
@@ -77,4 +77,46 @@ func (p *Product) ToCleanedOrder(orderNo int) *CleanedOrder {
 		UnitPrice:  p.UnitPrice,
 		TotalPrice: p.TotalPrice,
 	}
+}
+
+func (p *Product) IsValid() error {
+	if p.ProductId == "" {
+		log.Error("Product ID cannot be empty")
+		return errors.ErrInvalidInput
+	}
+
+	if p.MaterialId == "" {
+		log.Error("Material ID cannot be empty")
+		return errors.ErrInvalidInput
+	}
+
+	if p.ModelId == "" {
+		log.Error("Model ID cannot be empty")
+		return errors.ErrInvalidInput
+	}
+
+	if p.Quantity <= 0 {
+		log.Error("Quantity must be positive")
+		return errors.ErrInvalidInput
+	}
+
+	if p.UnitPrice < 0 {
+		log.Error("Unit price cannot be negative")
+		return errors.ErrInvalidInput
+	}
+
+	if p.TotalPrice < 0 {
+		log.Error("Total price cannot be negative")
+		return errors.ErrInvalidInput
+	}
+
+	return nil
+}
+
+func (c *CleanedOrder) IsMainProduct() bool {
+	return c.MaterialId != "" && c.ModelId != ""
+}
+
+func (c *CleanedOrder) IsComplementaryProduct() bool {
+	return !c.IsMainProduct()
 }
