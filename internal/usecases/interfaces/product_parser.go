@@ -10,12 +10,13 @@ type ProductParser interface {
 	ExtractQuantity(productId string) (cleanId string, quantity int, hasQuantity bool)
 	SplitBundle(productId string) []string
 	ParseProductCode(productId string) (materialId, modelId string, err error)
+	Validate(productId string) error
 }
 
-type OrderProcessor interface {
+type OrderProcessorUseCase interface {
 	ProcessOrders(inputOrders []*entity.InputOrder) ([]*entity.CleanedOrder, error)
 }
 
 type ComplementaryCalculator interface {
-	Calculate(mainProducts []*entity.Product) ([]*entity.CleanedOrder, error)
+	CalculateWithStartingOrderNo(mainProducts []*entity.Product, startingOrderNo int) ([]*entity.CleanedOrder, error)
 }
