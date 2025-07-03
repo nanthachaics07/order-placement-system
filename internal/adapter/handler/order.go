@@ -38,7 +38,14 @@ func (h *orderHandler) ProcessOrders(c *gin.Context) {
 	}
 
 	inputOrderModels = req
-	result, err := h.orderProcessor.ProcessOrders(model.ToEntity(inputOrderModels))
+	inputEntities, err := model.ToEntity(inputOrderModels)
+	if err != nil {
+		log.Errorf("failed to convert models to entities", log.E(err))
+		h.presenter.ErrorResponse(c, err)
+		return
+	}
+
+	result, err := h.orderProcessor.ProcessOrders(inputEntities)
 	if err != nil {
 		log.Errorf("failed to process orders", log.E(err))
 		h.presenter.ErrorResponse(c, err)

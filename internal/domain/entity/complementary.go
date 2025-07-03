@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"order-placement-system/internal/domain/value_object"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
 	"strings"
@@ -77,8 +78,8 @@ func (c *ComplementaryCalculation) ToCleanedOrders(startingNo int) []*CleanedOrd
 			No:         currentNo,
 			ProductId:  c.WipingCloth.ProductId,
 			Qty:        c.WipingCloth.Quantity,
-			UnitPrice:  0.00,
-			TotalPrice: 0.00,
+			UnitPrice:  value_object.ZeroPrice(),
+			TotalPrice: value_object.ZeroPrice(),
 		})
 		currentNo++
 	}
@@ -91,14 +92,53 @@ func (c *ComplementaryCalculation) ToCleanedOrders(startingNo int) []*CleanedOrd
 				No:         currentNo,
 				ProductId:  cleaner.ProductId,
 				Qty:        cleaner.Quantity,
-				UnitPrice:  0.00,
-				TotalPrice: 0.00,
+				UnitPrice:  value_object.ZeroPrice(),
+				TotalPrice: value_object.ZeroPrice(),
 			})
 			currentNo++
 		}
 	}
 
 	return orders
+}
+
+func (c *ComplementaryCalculation) GetTotalComplementaryValue(
+	wipingClothPrice *value_object.Price,
+	cleanerPrices map[string]*value_object.Price,
+) (*value_object.Price, error) {
+	totalValue := value_object.ZeroPrice()
+
+	if c.WipingCloth != nil && c.WipingCloth.Quantity > 0 && wipingClothPrice != nil {
+		wipingClothValue, err := wipingClothPrice.MultiplyByInt(c.WipingCloth.Quantity)
+		if err != nil {
+			log.Errorf("failed to calculate wiping cloth value", log.E(err))
+			return nil, errors.ErrInvalidInput
+		}
+		totalValue, err = totalValue.Add(wipingClothValue)
+		if err != nil {
+			log.Errorf("failed to add wiping cloth value", log.E(err))
+			return nil, errors.ErrInvalidInput
+		}
+	}
+
+	if cleanerPrices != nil {
+		for texture, cleaner := range c.Cleaners {
+			if cleaner.Quantity > 0 && cleanerPrices[texture] != nil {
+				cleanerValue, err := cleanerPrices[texture].MultiplyByInt(cleaner.Quantity)
+				if err != nil {
+					log.Errorf("failed to calculate %s cleaner value", texture, log.E(err))
+					return nil, errors.ErrInvalidInput
+				}
+				totalValue, err = totalValue.Add(cleanerValue)
+				if err != nil {
+					log.Errorf("failed to add %s cleaner value", texture, log.E(err))
+					return nil, errors.ErrInvalidInput
+				}
+			}
+		}
+	}
+
+	return totalValue, nil
 }
 
 func generateCleanerId(texture string) string {
