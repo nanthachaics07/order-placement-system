@@ -7,14 +7,14 @@ import (
 	"strings"
 
 	"order-placement-system/internal/domain/entity"
-	"order-placement-system/internal/usecases/interfaces"
+	"order-placement-system/internal/domain/service"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
 )
 
 type ProductParserImpl struct{}
 
-func NewProductParser() interfaces.ProductParser {
+func NewProductParser() service.ProductParser {
 	return &ProductParserImpl{}
 }
 
