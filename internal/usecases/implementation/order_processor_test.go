@@ -6,6 +6,7 @@ import (
 	"order-placement-system/internal/domain/entity"
 	"order-placement-system/internal/usecases/implementation"
 	"order-placement-system/pkg/log"
+	"order-placement-system/pkg/utils/parser"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,7 +14,10 @@ import (
 
 func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 	log.Init("dev")
-	processor := implementation.NewOrderProcessor()
+	processor := implementation.NewOrderProcessor(
+		parser.NewProductParser(),
+		implementation.NewComplementaryCalculator(),
+	)
 
 	testCases := []struct {
 		name     string
@@ -394,7 +398,10 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 
 func TestOrderProcessor_EdgeCases(t *testing.T) {
 	log.Init("dev")
-	processor := implementation.NewOrderProcessor()
+	processor := implementation.NewOrderProcessor(
+		parser.NewProductParser(),
+		implementation.NewComplementaryCalculator(),
+	)
 
 	t.Run("Empty input", func(t *testing.T) {
 		result, err := processor.ProcessOrders([]*entity.InputOrder{})
