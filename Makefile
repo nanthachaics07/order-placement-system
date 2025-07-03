@@ -22,3 +22,10 @@ build-up:
 
 build-down:
 	docker-compose -f resources/docker/docker-compose.dev.yaml down -v
+
+gen-mock-order-processor:
+	mockery \
+	--name=OrderProcessorUseCase \
+	--dir=internal/usecases/interfaces \
+	--output=internal/mock/usecases \
+	--outpkg=usecases

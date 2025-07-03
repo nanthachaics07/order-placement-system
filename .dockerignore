@@ -22,7 +22,10 @@ coverage.html
 *.test
 *.out
 *_test.go
+**/*_test.go
 testdata/
+
+# all mock files
 mock/
 
 # IDE files
