@@ -1,26 +1,27 @@
 package entity
 
 import (
+	"order-placement-system/internal/domain/value_object"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
 )
 
 type InputOrder struct {
-	No                int     `json:"no"`
-	PlatformProductId string  `json:"platformProductId"`
-	Qty               int     `json:"qty"`
-	UnitPrice         float64 `json:"unitPrice"`
-	TotalPrice        float64 `json:"totalPrice"`
+	No                int                 `json:"no"`
+	PlatformProductId string              `json:"platformProductId"`
+	Qty               int                 `json:"qty"`
+	UnitPrice         *value_object.Price `json:"unitPrice"`
+	TotalPrice        *value_object.Price `json:"totalPrice"`
 }
 
 type CleanedOrder struct {
-	No         int     `json:"no"`
-	ProductId  string  `json:"productId"`
-	MaterialId string  `json:"materialId,omitempty"`
-	ModelId    string  `json:"modelId,omitempty"`
-	Qty        int     `json:"qty"`
-	UnitPrice  float64 `json:"unitPrice"`
-	TotalPrice float64 `json:"totalPrice"`
+	No         int                 `json:"no"`
+	ProductId  string              `json:"productId"`
+	MaterialId string              `json:"materialId,omitempty"`
+	ModelId    string              `json:"modelId,omitempty"`
+	Qty        int                 `json:"qty"`
+	UnitPrice  *value_object.Price `json:"unitPrice"`
+	TotalPrice *value_object.Price `json:"totalPrice"`
 }
 
 type OrderBatch struct {
@@ -49,12 +50,12 @@ func (o *InputOrder) IsValid() error {
 		return errors.ErrInvalidInput
 	}
 
-	if o.UnitPrice < 0 {
+	if o.UnitPrice == nil || o.UnitPrice.Amount() < 0 {
 		log.Errorf("unit price cannot be negative")
 		return errors.ErrInvalidInput
 	}
 
-	if o.TotalPrice < 0 {
+	if o.TotalPrice == nil || o.TotalPrice.Amount() < 0 {
 		log.Errorf("total price cannot be negative")
 		return errors.ErrInvalidInput
 	}
@@ -78,12 +79,12 @@ func (c *CleanedOrder) IsValid() error {
 		return errors.ErrInvalidInput
 	}
 
-	if c.UnitPrice < 0 {
+	if c.UnitPrice == nil || c.UnitPrice.Amount() < 0 {
 		log.Errorf("unit price cannot be negative")
 		return errors.ErrInvalidInput
 	}
 
-	if c.TotalPrice < 0 {
+	if c.TotalPrice == nil || c.TotalPrice.Amount() < 0 {
 		log.Errorf("total price cannot be negative")
 		return errors.ErrInvalidInput
 	}

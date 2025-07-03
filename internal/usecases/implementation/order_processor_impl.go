@@ -4,21 +4,24 @@ import (
 	"strconv"
 
 	"order-placement-system/internal/domain/entity"
+	"order-placement-system/internal/domain/service"
 	usecase "order-placement-system/internal/usecases/interfaces"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
-	"order-placement-system/pkg/utils/parser"
 )
 
 type orderProcessorUseCase struct {
-	productParser           usecase.ProductParser
+	productParser           service.ProductParser
 	complementaryCalculator usecase.ComplementaryCalculator
 }
 
-func NewOrderProcessor() usecase.OrderProcessorUseCase {
+func NewOrderProcessor(
+	parser service.ProductParser,
+	complementaryCalculator usecase.ComplementaryCalculator,
+) usecase.OrderProcessorUseCase {
 	return &orderProcessorUseCase{
-		productParser:           parser.NewProductParser(),
-		complementaryCalculator: NewComplementaryCalculator(),
+		productParser:           parser,
+		complementaryCalculator: complementaryCalculator,
 	}
 }
 
@@ -38,7 +41,6 @@ func (uc *orderProcessorUseCase) ProcessOrders(inputOrders []*entity.InputOrder)
 
 	// Process each input order
 	for _, inputOrder := range inputOrders {
-
 		parsedProducts, err := uc.productParser.Parse(
 			inputOrder.PlatformProductId,
 			inputOrder.Qty,
@@ -50,7 +52,6 @@ func (uc *orderProcessorUseCase) ProcessOrders(inputOrders []*entity.InputOrder)
 		}
 
 		for _, parsedProduct := range parsedProducts {
-
 			product, err := uc.createProductFromParsed(parsedProduct)
 			if err != nil {
 				log.Errorf("failed to create product from parsed data", log.S("product_id", parsedProduct.CleanProductId), log.E(err))
@@ -83,7 +84,6 @@ func (uc *orderProcessorUseCase) ProcessOrders(inputOrders []*entity.InputOrder)
 }
 
 func (uc *orderProcessorUseCase) createProductFromParsed(parsedProduct *entity.ParsedProduct) (*entity.Product, error) {
-
 	materialId, modelId, err := uc.productParser.ParseProductCode(parsedProduct.CleanProductId)
 	if err != nil {
 		log.Errorf("failed to parse product code", log.S("product_code", parsedProduct.CleanProductId), log.E(err))

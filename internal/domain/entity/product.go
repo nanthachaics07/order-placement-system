@@ -1,29 +1,30 @@
 package entity
 
 import (
+	"order-placement-system/internal/domain/value_object"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
 	"strings"
 )
 
 type ParsedProduct struct {
-	CleanProductId string  `json:"cleanProductId"`
-	Quantity       int     `json:"quantity"`
-	OriginalQty    int     `json:"originalQty"`
-	UnitPrice      float64 `json:"unitPrice"`
-	TotalPrice     float64 `json:"totalPrice"`
+	CleanProductId string              `json:"cleanProductId"`
+	Quantity       int                 `json:"quantity"`
+	OriginalQty    int                 `json:"originalQty"`
+	UnitPrice      *value_object.Price `json:"unitPrice"`
+	TotalPrice     *value_object.Price `json:"totalPrice"`
 }
 
 type Product struct {
-	ProductId  string  `json:"productId"`
-	MaterialId string  `json:"materialId"`
-	ModelId    string  `json:"modelId"`
-	Quantity   int     `json:"quantity"`
-	UnitPrice  float64 `json:"unitPrice"`
-	TotalPrice float64 `json:"totalPrice"`
+	ProductId  string              `json:"productId"`
+	MaterialId string              `json:"materialId"`
+	ModelId    string              `json:"modelId"`
+	Quantity   int                 `json:"quantity"`
+	UnitPrice  *value_object.Price `json:"unitPrice"`
+	TotalPrice *value_object.Price `json:"totalPrice"`
 }
 
-func NewProduct(productId string, quantity int, unitPrice, totalPrice float64) (*Product, error) {
+func NewProduct(productId string, quantity int, unitPrice, totalPrice *value_object.Price) (*Product, error) {
 	materialId, modelId, err := parseProductCode(productId)
 	if err != nil {
 		log.Errorf("Failed to parse product code", log.E(err), productId)
@@ -100,12 +101,12 @@ func (p *Product) IsValid() error {
 		return errors.ErrInvalidInput
 	}
 
-	if p.UnitPrice < 0 {
+	if p.UnitPrice == nil || p.UnitPrice.Amount() < 0 {
 		log.Error("Unit price cannot be negative")
 		return errors.ErrInvalidInput
 	}
 
-	if p.TotalPrice < 0 {
+	if p.TotalPrice == nil || p.TotalPrice.Amount() < 0 {
 		log.Error("Total price cannot be negative")
 		return errors.ErrInvalidInput
 	}
@@ -119,4 +120,15 @@ func (c *CleanedOrder) IsMainProduct() bool {
 
 func (c *CleanedOrder) IsComplementaryProduct() bool {
 	return !c.IsMainProduct()
+}
+
+func (p *Product) Clone() *Product {
+	return &Product{
+		ProductId:  p.ProductId,
+		MaterialId: p.MaterialId,
+		ModelId:    p.ModelId,
+		Quantity:   p.Quantity,
+		UnitPrice:  p.UnitPrice.Clone(),
+		TotalPrice: p.TotalPrice.Clone(),
+	}
 }
