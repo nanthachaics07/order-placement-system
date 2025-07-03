@@ -1,0 +1,28 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ./cmd"
+  bin = "tmp/main"
+  include_ext = ["go"]
+  exclude_dir = ["tmp", "vendor"]
+  delay = 500
+  stop_on_error = true
+  send_interrupt = true
+  kill_delay = 300
+
+[log]
+  time = true
+  color = true
+
+[env]
+  APP_ENV = "development"
+  DEBUG = "true"
+
+[watch]
+  exclude = ["tmp", "vendor", "node_modules"]
+  include_ext = ["go", "mod", "tpl", "html", "tmpl"]
+  follow_symlink = false
+
+[[post]]
+  cmd = "echo done"
