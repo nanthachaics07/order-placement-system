@@ -26,13 +26,16 @@ jobs:
       run: |
         go test ./... -coverprofile=coverage.out
 
-    - name: Test only packages with *_test.go files
+    - name: Check test coverage threshold
       run: |
-        for pkg in $(go list ./...); do
-          if ls $(go list -f '{{.Dir}}' $pkg)/*_test.go > /dev/null 2>&1; then
-            echo "Testing $pkg"
-            go test -v $pkg
-          else
-            echo "Skipping $pkg (no test files)"
-          fi
-        done
+        total=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+        echo "Total coverage: $total%"
+        threshold=80.0
+        # Convert to float with bc
+        is_enough=$(echo "$total >= $threshold" | bc)
+        if [ "$is_enough" -ne 1 ]; then
+          echo "❌ Coverage is below $threshold%"
+          exit 1
+        else
+          echo "✅ Coverage is sufficient"
+        fi
