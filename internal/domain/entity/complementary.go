@@ -40,6 +40,11 @@ func (c *ComplementaryCalculation) AddProduct(product *Product) error {
 		return errors.ErrInvalidInput
 	}
 
+	if !IsValidTexture(texture) {
+		log.Errorf("invalid texture", log.S("texture", texture))
+		return errors.ErrInvalidInput
+	}
+
 	// add Wiping Cloth 1:1
 	if c.WipingCloth == nil {
 		c.WipingCloth = &ComplementaryItem{
