@@ -2,6 +2,7 @@ package model
 
 import (
 	"order-placement-system/internal/domain/entity"
+	"order-placement-system/internal/domain/value_object"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
 
@@ -9,100 +10,111 @@ import (
 )
 
 type InputOrder struct {
-	No                int     `json:"no"`
-	PlatformProductId string  `json:"platformProductId"`
-	Qty               int     `json:"qty"`
-	UnitPrice         float64 `json:"unitPrice"`
-	TotalPrice        float64 `json:"totalPrice"`
+	No                int     `json:"no" binding:"required,min=1"`
+	PlatformProductId string  `json:"platformProductId" binding:"required"`
+	Qty               int     `json:"qty" binding:"required,min=1"`
+	UnitPrice         float64 `json:"unitPrice" binding:"required,min=0"`
+	TotalPrice        float64 `json:"totalPrice" binding:"required,min=0"`
 }
 
-func (r *InputOrder) Parse(c *gin.Context) ([]*InputOrder, error) {
-	var inputOrders []*InputOrder
+type CleanedOrder struct {
+	No         int                 `json:"no"`
+	ProductId  string              `json:"productId"`
+	MaterialId string              `json:"materialId,omitempty"`
+	ModelId    string              `json:"modelId,omitempty"`
+	Qty        int                 `json:"qty"`
+	UnitPrice  *value_object.Price `json:"unitPrice"`
+	TotalPrice *value_object.Price `json:"totalPrice"`
+}
 
-	if err := c.ShouldBindJSON(&inputOrders); err != nil {
+func (o *InputOrder) Parse(c *gin.Context) ([]*InputOrder, error) {
+	var orders []*InputOrder
+
+	if err := c.ShouldBindJSON(&orders); err != nil {
 		log.Errorf("failed to bind JSON", log.E(err))
 		return nil, errors.ErrInvalidInput
 	}
 
-	for i, order := range inputOrders {
-		if err := r.validateInputOrder(order, i); err != nil {
-			log.Errorf("validation failed for order",
-				log.S("index", string(rune(i))), log.E(err))
+	if len(orders) == 0 {
+		log.Error("empty orders array")
+		return nil, errors.ErrInvalidInput
+	}
+
+	return orders, nil
+}
+
+func (o *InputOrder) ToEntity() (*entity.InputOrder, error) {
+	unitPrice, err := value_object.NewPrice(o.UnitPrice)
+	if err != nil {
+		return nil, errors.ErrInvalidInput
+	}
+
+	totalPrice, err := value_object.NewPrice(o.TotalPrice)
+	if err != nil {
+		return nil, errors.ErrInvalidInput
+	}
+
+	return &entity.InputOrder{
+		No:                o.No,
+		PlatformProductId: o.PlatformProductId,
+		Qty:               o.Qty,
+		UnitPrice:         unitPrice,
+		TotalPrice:        totalPrice,
+	}, nil
+}
+
+func ToEntity(models []*InputOrder) ([]*entity.InputOrder, error) {
+	entities := make([]*entity.InputOrder, len(models))
+	for i, model := range models {
+		entity, err := model.ToEntity()
+		if err != nil {
 			return nil, err
 		}
+		entities[i] = entity
 	}
-
-	log.Infof("successfully parsed input orders",
-		log.S("count", string(rune(len(inputOrders)))))
-
-	return inputOrders, nil
+	return entities, nil
 }
 
-func (r *InputOrder) validateInputOrder(order *InputOrder, index int) error {
-	if order == nil {
-		return errors.ErrInvalidInput
-	}
-	if order.PlatformProductId == "" {
-		return errors.ErrInvalidInput
-	}
-	if order.Qty <= 0 {
-		return errors.ErrInvalidInput
-	}
-	if order.UnitPrice < 0 {
-		return errors.ErrInvalidInput
-	}
-	if order.TotalPrice < 0 {
-		return errors.ErrInvalidInput
-	}
-	return nil
-}
-
-func ToEntity(models []*InputOrder) []*entity.InputOrder {
-	entities := make([]*entity.InputOrder, 0, len(models))
-
-	for _, model := range models {
-		entity := &entity.InputOrder{
-			No:                model.No,
-			PlatformProductId: model.PlatformProductId,
-			Qty:               model.Qty,
-			UnitPrice:         model.UnitPrice,
-			TotalPrice:        model.TotalPrice,
-		}
-		entities = append(entities, entity)
-	}
-
-	return entities
-}
-
-type CleanedOrder struct {
-	No         int     `json:"no"`
-	ProductId  string  `json:"productId"`
-	MaterialId string  `json:"materialId,omitempty"`
-	ModelId    string  `json:"modelId,omitempty"`
-	Qty        int     `json:"qty"`
-	UnitPrice  float64 `json:"unitPrice"`
-	TotalPrice float64 `json:"totalPrice"`
-}
-
-func (r *CleanedOrder) fromEntity(entity *entity.CleanedOrder) *CleanedOrder {
+func FromEntity(e *entity.CleanedOrder) *CleanedOrder {
 	return &CleanedOrder{
-		No:         entity.No,
-		ProductId:  entity.ProductId,
-		MaterialId: entity.MaterialId,
-		ModelId:    entity.ModelId,
-		Qty:        entity.Qty,
-		UnitPrice:  entity.UnitPrice,
-		TotalPrice: entity.TotalPrice,
+		No:         e.No,
+		ProductId:  e.ProductId,
+		MaterialId: e.MaterialId,
+		ModelId:    e.ModelId,
+		Qty:        e.Qty,
+		UnitPrice:  e.UnitPrice,
+		TotalPrice: e.TotalPrice,
 	}
 }
 
 func FromEntities(entities []*entity.CleanedOrder) []*CleanedOrder {
-	models := make([]*CleanedOrder, 0, len(entities))
+	models := make([]*CleanedOrder, len(entities))
+	for i, e := range entities {
+		models[i] = FromEntity(e)
+	}
+	return models
+}
 
-	for _, entity := range entities {
-		model := &CleanedOrder{}
-		models = append(models, model.fromEntity(entity))
+func (o *InputOrder) Validate() error {
+	if o.No <= 0 {
+		return errors.ErrInvalidInput
 	}
 
-	return models
+	if o.PlatformProductId == "" {
+		return errors.ErrInvalidInput
+	}
+
+	if o.Qty <= 0 {
+		return errors.ErrInvalidInput
+	}
+
+	if o.UnitPrice < 0 {
+		return errors.ErrInvalidInput
+	}
+
+	if o.TotalPrice < 0 {
+		return errors.ErrInvalidInput
+	}
+
+	return nil
 }

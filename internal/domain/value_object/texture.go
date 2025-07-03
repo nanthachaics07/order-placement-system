@@ -103,7 +103,7 @@ func (t Texture) GetPriority() int {
 	}
 }
 
-// FG0A-CLEAR to TextureClear {ดึง texture จาก material id}
+// FG0A-CLEAR to TextureClear get texture from material id
 func ParseTextureFromMaterialId(materialId string) (Texture, error) {
 	if materialId == "" {
 		log.Error("material id cannot be empty")

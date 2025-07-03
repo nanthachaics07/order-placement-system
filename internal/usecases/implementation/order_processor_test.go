@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"order-placement-system/internal/domain/entity"
+	"order-placement-system/internal/domain/value_object"
 	"order-placement-system/internal/usecases/implementation"
 	"order-placement-system/pkg/log"
 	"order-placement-system/pkg/utils/parser"
@@ -12,8 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
+func init() {
 	log.Init("dev")
+}
+
+func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
+
 	processor := implementation.NewOrderProcessor(
 		parser.NewProductParser(),
 		implementation.NewComplementaryCalculator(),
@@ -31,8 +36,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "FG0A-CLEAR-IPHONE16PROMAX",
 					Qty:               2,
-					UnitPrice:         50,
-					TotalPrice:        100,
+					UnitPrice:         value_object.MustNewPrice(50),
+					TotalPrice:        value_object.MustNewPrice(100),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -42,22 +47,22 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "IPHONE16PROMAX",
 					Qty:        2,
-					UnitPrice:  50.00,
-					TotalPrice: 100.00,
+					UnitPrice:  value_object.MustNewPrice(50.00),
+					TotalPrice: value_object.MustNewPrice(100.00),
 				},
 				{
 					No:         2,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         3,
 					ProductId:  "CLEAR-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -68,8 +73,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "x2-3&FG0A-CLEAR-IPHONE16PROMAX",
 					Qty:               2,
-					UnitPrice:         50,
-					TotalPrice:        100,
+					UnitPrice:         value_object.MustNewPrice(50),
+					TotalPrice:        value_object.MustNewPrice(100),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -79,22 +84,22 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "IPHONE16PROMAX",
 					Qty:        2,
-					UnitPrice:  50.00,
-					TotalPrice: 100.00,
+					UnitPrice:  value_object.MustNewPrice(50.00),
+					TotalPrice: value_object.MustNewPrice(100.00),
 				},
 				{
 					No:         2,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         3,
 					ProductId:  "CLEAR-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -105,8 +110,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "x2-3&FG0A-MATTE-IPHONE16PROMAX*3",
 					Qty:               1,
-					UnitPrice:         90,
-					TotalPrice:        90,
+					UnitPrice:         value_object.MustNewPrice(90),
+					TotalPrice:        value_object.MustNewPrice(90),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -116,22 +121,22 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-MATTE",
 					ModelId:    "IPHONE16PROMAX",
 					Qty:        3,
-					UnitPrice:  30.00,
-					TotalPrice: 90.00,
+					UnitPrice:  value_object.MustNewPrice(30.00),
+					TotalPrice: value_object.MustNewPrice(90.00),
 				},
 				{
 					No:         2,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        3,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         3,
 					ProductId:  "MATTE-CLEANNER",
 					Qty:        3,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -142,8 +147,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "FG0A-CLEAR-OPPOA3/%20xFG0A-CLEAR-OPPOA3-B",
 					Qty:               1,
-					UnitPrice:         80,
-					TotalPrice:        80,
+					UnitPrice:         value_object.MustNewPrice(80),
+					TotalPrice:        value_object.MustNewPrice(80),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -153,8 +158,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "OPPOA3",
 					Qty:        1,
-					UnitPrice:  40.00,
-					TotalPrice: 40.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(40.00),
 				},
 				{
 					No:         2,
@@ -162,22 +167,22 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "OPPOA3-B",
 					Qty:        1,
-					UnitPrice:  40.00,
-					TotalPrice: 40.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(40.00),
 				},
 				{
 					No:         3,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         4,
 					ProductId:  "CLEAR-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -188,8 +193,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "FG0A-CLEAR-OPPOA3/%20xFG0A-CLEAR-OPPOA3-B/FG0A-MATTE-OPPOA3",
 					Qty:               1,
-					UnitPrice:         120,
-					TotalPrice:        120,
+					UnitPrice:         value_object.MustNewPrice(120),
+					TotalPrice:        value_object.MustNewPrice(120),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -199,8 +204,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "OPPOA3",
 					Qty:        1,
-					UnitPrice:  40.00,
-					TotalPrice: 40.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(40.00),
 				},
 				{
 					No:         2,
@@ -208,8 +213,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "OPPOA3-B",
 					Qty:        1,
-					UnitPrice:  40.00,
-					TotalPrice: 40.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(40.00),
 				},
 				{
 					No:         3,
@@ -217,29 +222,29 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-MATTE",
 					ModelId:    "OPPOA3",
 					Qty:        1,
-					UnitPrice:  40.00,
-					TotalPrice: 40.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(40.00),
 				},
 				{
 					No:         4,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        3,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         5,
 					ProductId:  "CLEAR-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         6,
 					ProductId:  "MATTE-CLEANNER",
 					Qty:        1,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -250,8 +255,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "--FG0A-CLEAR-OPPOA3*2/FG0A-MATTE-OPPOA3",
 					Qty:               1,
-					UnitPrice:         120,
-					TotalPrice:        120,
+					UnitPrice:         value_object.MustNewPrice(120),
+					TotalPrice:        value_object.MustNewPrice(120),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -261,8 +266,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "OPPOA3",
 					Qty:        2,
-					UnitPrice:  40.00,
-					TotalPrice: 80.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(80.00),
 				},
 				{
 					No:         2,
@@ -270,29 +275,29 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-MATTE",
 					ModelId:    "OPPOA3",
 					Qty:        1,
-					UnitPrice:  40.00,
-					TotalPrice: 40.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(40.00),
 				},
 				{
 					No:         3,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        3,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         4,
 					ProductId:  "CLEAR-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         5,
 					ProductId:  "MATTE-CLEANNER",
 					Qty:        1,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -303,15 +308,15 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					No:                1,
 					PlatformProductId: "--FG0A-CLEAR-OPPOA3*2/FG0A-MATTE-OPPOA3*2",
 					Qty:               1,
-					UnitPrice:         160,
-					TotalPrice:        160,
+					UnitPrice:         value_object.MustNewPrice(160),
+					TotalPrice:        value_object.MustNewPrice(160),
 				},
 				{
 					No:                2,
 					PlatformProductId: "FG0A-PRIVACY-IPHONE16PROMAX",
 					Qty:               1,
-					UnitPrice:         50,
-					TotalPrice:        50,
+					UnitPrice:         value_object.MustNewPrice(50),
+					TotalPrice:        value_object.MustNewPrice(50),
 				},
 			},
 			expected: []*entity.CleanedOrder{
@@ -321,8 +326,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-CLEAR",
 					ModelId:    "OPPOA3",
 					Qty:        2,
-					UnitPrice:  40.00,
-					TotalPrice: 80.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(80.00),
 				},
 				{
 					No:         2,
@@ -330,8 +335,8 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-MATTE",
 					ModelId:    "OPPOA3",
 					Qty:        2,
-					UnitPrice:  40.00,
-					TotalPrice: 80.00,
+					UnitPrice:  value_object.MustNewPrice(40.00),
+					TotalPrice: value_object.MustNewPrice(80.00),
 				},
 				{
 					No:         3,
@@ -339,36 +344,36 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 					MaterialId: "FG0A-PRIVACY",
 					ModelId:    "IPHONE16PROMAX",
 					Qty:        1,
-					UnitPrice:  50.00,
-					TotalPrice: 50.00,
+					UnitPrice:  value_object.MustNewPrice(50.00),
+					TotalPrice: value_object.MustNewPrice(50.00),
 				},
 				{
 					No:         4,
 					ProductId:  "WIPING-CLOTH",
 					Qty:        5,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         5,
 					ProductId:  "CLEAR-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         6,
 					ProductId:  "MATTE-CLEANNER",
 					Qty:        2,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 				{
 					No:         7,
 					ProductId:  "PRIVACY-CLEANNER",
 					Qty:        1,
-					UnitPrice:  0.00,
-					TotalPrice: 0.00,
+					UnitPrice:  value_object.ZeroPrice(),
+					TotalPrice: value_object.ZeroPrice(),
 				},
 			},
 		},
@@ -389,15 +394,28 @@ func TestOrderProcessor_ProcessOrders_SevenCases(t *testing.T) {
 				assert.Equal(t, expectedOrder.MaterialId, result[i].MaterialId, "Material ID should match")
 				assert.Equal(t, expectedOrder.ModelId, result[i].ModelId, "Model ID should match")
 				assert.Equal(t, expectedOrder.Qty, result[i].Qty, "Quantity should match")
-				assert.InDelta(t, expectedOrder.UnitPrice, result[i].UnitPrice, 0.01, "Unit price should match")
-				assert.InDelta(t, expectedOrder.TotalPrice, result[i].TotalPrice, 0.01, "Total price should match")
+
+				// เปรียบเทียบ Price objects
+				if expectedOrder.UnitPrice != nil && result[i].UnitPrice != nil {
+					assert.InDelta(t, expectedOrder.UnitPrice.Amount(), result[i].UnitPrice.Amount(), 0.01,
+						"Unit price should match")
+				} else {
+					assert.Equal(t, expectedOrder.UnitPrice, result[i].UnitPrice, "Unit price should match")
+				}
+
+				if expectedOrder.TotalPrice != nil && result[i].TotalPrice != nil {
+					assert.InDelta(t, expectedOrder.TotalPrice.Amount(), result[i].TotalPrice.Amount(), 0.01,
+						"Total price should match")
+				} else {
+					assert.Equal(t, expectedOrder.TotalPrice, result[i].TotalPrice, "Total price should match")
+				}
 			}
 		})
 	}
 }
 
 func TestOrderProcessor_EdgeCases(t *testing.T) {
-	log.Init("dev")
+
 	processor := implementation.NewOrderProcessor(
 		parser.NewProductParser(),
 		implementation.NewComplementaryCalculator(),
@@ -415,8 +433,8 @@ func TestOrderProcessor_EdgeCases(t *testing.T) {
 				No:                1,
 				PlatformProductId: "INVALID-ID",
 				Qty:               1,
-				UnitPrice:         50,
-				TotalPrice:        50,
+				UnitPrice:         value_object.MustNewPrice(50),
+				TotalPrice:        value_object.MustNewPrice(50),
 			},
 		}
 
@@ -430,4 +448,34 @@ func TestOrderProcessor_EdgeCases(t *testing.T) {
 		_, err := processor.ProcessOrders(input)
 		assert.Error(t, err)
 	})
+
+	t.Run("Zero quantity", func(t *testing.T) {
+		input := []*entity.InputOrder{
+			{
+				No:                1,
+				PlatformProductId: "FG0A-CLEAR-IPHONE16PROMAX",
+				Qty:               0,
+				UnitPrice:         value_object.MustNewPrice(50),
+				TotalPrice:        value_object.MustNewPrice(0),
+			},
+		}
+
+		_, err := processor.ProcessOrders(input)
+		assert.Error(t, err)
+	})
+
+	// t.Run("Negative price", func(t *testing.T) {
+	// 	input := []*entity.InputOrder{
+	// 		{
+	// 			No:                1,
+	// 			PlatformProductId: "FG0A-CLEAR-IPHONE16PROMAX",
+	// 			Qty:               1,
+	// 			UnitPrice:         value_object.MustNewPrice(-10),
+	// 			TotalPrice:        value_object.MustNewPrice(-10),
+	// 		},
+	// 	}
+
+	// 	_, err := processor.ProcessOrders(input)
+	// 	assert.Error(t, err)
+	// })
 }

@@ -54,7 +54,6 @@ func NewMaterialFromString(materialId string) (*Material, error) {
 	return NewMaterial(filmTypeID, texture)
 }
 
-// convert to material id
 func (m *Material) String() string {
 	return fmt.Sprintf("%s-%s", m.FilmTypeID, m.Texture.String())
 }
@@ -81,7 +80,6 @@ func (m *Material) Equals(other *Material) bool {
 	return m.FilmTypeID == other.FilmTypeID && m.Texture.Equals(other.Texture)
 }
 
-// get cleaner product id based on texture
 func (m *Material) GetCleanerProductId() string {
 	return m.Texture.GetCleanerProductId()
 }
@@ -95,7 +93,6 @@ func (m *Material) GetDisplayName() string {
 	return fmt.Sprintf("%s %s", m.FilmTypeID, m.Texture.GetDisplayName())
 }
 
-// check if the material has a specific texture
 func (m *Material) HasTexture(texture Texture) bool {
 	return m.Texture.Equals(texture)
 }

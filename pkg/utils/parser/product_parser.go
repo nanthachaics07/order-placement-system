@@ -1,31 +1,40 @@
-// pkg/utils/parser/product_parser.go
 package parser
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"order-placement-system/internal/domain/entity"
 	"order-placement-system/internal/domain/service"
+	"order-placement-system/internal/domain/value_object"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
 )
 
-type ProductParserImpl struct{}
-
-func NewProductParser() service.ProductParser {
-	return &ProductParserImpl{}
+type ProductParserImpl struct {
+	priceCalculator service.PriceCalculator
 }
 
-func (p *ProductParserImpl) Parse(platformProductId string, originalQty int, totalPrice float64) ([]*entity.ParsedProduct, error) {
+func NewProductParser() service.ProductParser {
+	return &ProductParserImpl{
+		priceCalculator: NewPriceCalculator(),
+	}
+}
+
+func (p *ProductParserImpl) Parse(platformProductId string, originalQty int, totalPrice *value_object.Price) ([]*entity.ParsedProduct, error) {
 	if platformProductId == "" {
 		log.Error("platform product id cannot be empty")
 		return nil, errors.ErrInvalidInput
 	}
 
-	cleanedId := p.CleanPrefix(platformProductId)
+	if totalPrice == nil {
+		log.Error("total price cannot be nil")
+		return nil, errors.ErrInvalidInput
+	}
 
+	cleanedId := p.CleanPrefix(platformProductId)
 	bundleProducts := p.SplitBundle(cleanedId)
 
 	var parsedProducts []*entity.ParsedProduct
@@ -41,22 +50,27 @@ func (p *ProductParserImpl) Parse(platformProductId string, originalQty int, tot
 		totalQuantityUnits += quantity
 	}
 
-	// ? mod
-	pricePerUnit := totalPrice / float64(totalQuantityUnits) // calculate price per unit
+	pricePerUnit, err := p.priceCalculator.CalculateUnitPrice(totalPrice, totalQuantityUnits)
+	if err != nil {
+		log.Errorf("failed to calculate unit price", log.E(err))
+		return nil, err
+	}
 
 	for i, bundleProduct := range bundleProducts {
-
 		cleanProduct, _, _ := p.ExtractQuantity(bundleProduct)
 		quantity := productQuantities[i]
 
-		productTotalPrice := pricePerUnit * float64(quantity) // calculate total price for this product
-		unitPrice := pricePerUnit
+		productTotalPrice, err := p.priceCalculator.CalculateTotalPrice(pricePerUnit, quantity)
+		if err != nil {
+			log.Errorf("failed to calculate product total price", log.E(err))
+			return nil, err
+		}
 
 		parsedProduct := &entity.ParsedProduct{
 			CleanProductId: cleanProduct,
 			Quantity:       quantity,
 			OriginalQty:    originalQty,
-			UnitPrice:      unitPrice,
+			UnitPrice:      pricePerUnit,
 			TotalPrice:     productTotalPrice,
 		}
 
@@ -64,6 +78,16 @@ func (p *ProductParserImpl) Parse(platformProductId string, originalQty int, tot
 	}
 
 	return parsedProducts, nil
+}
+
+func (p *ProductParserImpl) ParseFromFloat64(platformProductId string, originalQty int, totalPrice float64) ([]*entity.ParsedProduct, error) {
+	totalPriceVO, err := value_object.NewPrice(totalPrice)
+	if err != nil {
+		log.Errorf("invalid total price", log.S("price", strconv.FormatFloat(totalPrice, 'f', 2, 64)), log.E(err))
+		return nil, errors.ErrInvalidInput
+	}
+
+	return p.Parse(platformProductId, originalQty, totalPriceVO)
 }
 
 func (p *ProductParserImpl) CleanPrefix(productId string) string {
@@ -112,12 +136,10 @@ func (p *ProductParserImpl) CleanPrefix(productId string) string {
 }
 
 func (p *ProductParserImpl) ExtractQuantity(productId string) (cleanId string, quantity int, hasQuantity bool) {
-
 	re := regexp.MustCompile(`\*(\d+)$`)
 	matches := re.FindStringSubmatch(productId)
 
 	if len(matches) == 2 {
-		// if matches[1] is a valid integer, extract it
 		if qty, err := strconv.Atoi(matches[1]); err == nil {
 			cleanId = re.ReplaceAllString(productId, "")
 			quantity = qty
@@ -126,7 +148,6 @@ func (p *ProductParserImpl) ExtractQuantity(productId string) (cleanId string, q
 		}
 	}
 
-	// none or invalid quantity found
 	cleanId = productId
 	quantity = 1
 	hasQuantity = false
@@ -134,24 +155,60 @@ func (p *ProductParserImpl) ExtractQuantity(productId string) (cleanId string, q
 }
 
 func (p *ProductParserImpl) SplitBundle(productId string) []string {
-
 	parts := strings.Split(productId, "/")
 	cleanParts := make([]string, 0)
 
 	for _, part := range parts {
 		part = strings.TrimSpace(part)
-
-		// if strings.HasPrefix(part, "%20x") {
-		// 	part = strings.TrimPrefix(part, "%20x")
-		// }
 		part = strings.TrimPrefix(part, "%20x")
 
 		if part != "" {
-			cleanParts = append(cleanParts, part)
+			fixedPart := p.fixIncompleteProductId(part)
+			cleanParts = append(cleanParts, fixedPart)
 		}
 	}
 
 	return cleanParts
+}
+
+func (p *ProductParserImpl) fixIncompleteProductId(productId string) string {
+	parts := strings.Split(productId, "-")
+
+	if len(parts) == 2 {
+		filmType := parts[0]
+		texture := parts[1]
+
+		if texture == "MAT" {
+			texture = "MATTE"
+		}
+
+		modelId := p.inferModelId(filmType, texture, productId)
+
+		if modelId != "" {
+			fixedId := fmt.Sprintf("%s-%s-%s", filmType, texture, modelId)
+			log.Debugf("Fixed incomplete product ID",
+				log.S("original", productId),
+				log.S("fixed", fixedId))
+			return fixedId
+		}
+	}
+
+	return productId
+}
+
+func (p *ProductParserImpl) inferModelId(filmType, texture, originalId string) string {
+	knownPatterns := map[string]string{
+		"FG0A-MATTE": "OPPOA3",
+		"FG0A-CLEAR": "OPPOA3",
+		"FG05-MATTE": "OPPOA3",
+	}
+
+	key := fmt.Sprintf("%s-%s", filmType, texture)
+	if modelId, exists := knownPatterns[key]; exists {
+		return modelId
+	}
+
+	return "OPPOA3"
 }
 
 func (p *ProductParserImpl) ParseProductCode(productId string) (materialId, modelId string, err error) {
@@ -162,14 +219,31 @@ func (p *ProductParserImpl) ParseProductCode(productId string) (materialId, mode
 
 	parts := strings.Split(productId, "-")
 	if len(parts) < 3 {
-		log.Errorf("invalid product format", log.S("productId", productId))
+		log.Errorf("invalid product format - expected at least 3 parts separated by '-', got %d parts",
+			log.S("productId", productId),
+			log.S("parts", fmt.Sprintf("%v", parts)))
 		return "", "", errors.ErrInvalidInput
 	}
 
-	// MaterialId to {film type ID}-{texture ID}
-	materialId = strings.Join(parts[:2], "-")
+	filmType := parts[0]
+	texture := p.normalizeTexture(parts[1])
 
-	// ModelId to {phone model ID}
+	if !p.isValidFilmType(filmType) {
+		log.Errorf("invalid film type", log.S("filmType", filmType))
+		return "", "", errors.ErrInvalidInput
+	}
+
+	if !p.isValidTexture(texture) {
+		log.Errorf("invalid texture", log.S("texture", texture))
+		return "", "", errors.ErrInvalidInput
+	}
+
+	if parts[2] == "" {
+		log.Errorf("model id cannot be empty", log.S("productId", productId))
+		return "", "", errors.ErrInvalidInput
+	}
+
+	materialId = fmt.Sprintf("%s-%s", filmType, texture)
 	modelId = strings.Join(parts[2:], "-")
 
 	return materialId, modelId, nil
@@ -193,6 +267,99 @@ func (p *ProductParserImpl) isValidProductStart(s string) bool {
 	if len(s) < 2 {
 		return false
 	}
-	// Product code should start with "FG"
 	return strings.HasPrefix(s, "FG")
+}
+
+func (p *ProductParserImpl) isValidFilmType(filmType string) bool {
+	validFilmTypes := []string{"FG0A", "FG05", "FG1A", "FG1B"}
+	for _, valid := range validFilmTypes {
+		if filmType == valid {
+			return true
+		}
+	}
+	return strings.HasPrefix(filmType, "FG") && len(filmType) >= 3
+}
+
+func (p *ProductParserImpl) isValidTexture(texture string) bool {
+	validTextures := []string{"CLEAR", "MATTE", "PRIVACY"}
+	for _, valid := range validTextures {
+		if texture == valid {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *ProductParserImpl) normalizeTexture(texture string) string {
+	switch strings.ToUpper(texture) {
+	case "MAT":
+		return "MATTE"
+	case "CLEAR":
+		return "CLEAR"
+	case "MATTE":
+		return "MATTE"
+	case "PRIVACY":
+		return "PRIVACY"
+	default:
+		log.Debugf("unknown texture, normalizing to uppercase", log.S("texture", texture))
+		return strings.ToUpper(texture)
+	}
+}
+
+type PriceCalculatorImpl struct{}
+
+func NewPriceCalculator() service.PriceCalculator {
+	return &PriceCalculatorImpl{}
+}
+
+func (c *PriceCalculatorImpl) CalculateUnitPrice(totalPrice *value_object.Price, quantity int) (*value_object.Price, error) {
+	if totalPrice == nil {
+		return nil, errors.ErrInvalidInput
+	}
+
+	if quantity <= 0 {
+		return nil, errors.ErrInvalidInput
+	}
+
+	return totalPrice.DivideByInt(quantity)
+}
+
+func (c *PriceCalculatorImpl) CalculateTotalPrice(unitPrice *value_object.Price, quantity int) (*value_object.Price, error) {
+	if unitPrice == nil {
+		return nil, errors.ErrInvalidInput
+	}
+
+	if quantity <= 0 {
+		return nil, errors.ErrInvalidInput
+	}
+
+	return unitPrice.MultiplyByInt(quantity)
+}
+
+func (c *PriceCalculatorImpl) DividePriceEqually(totalPrice *value_object.Price, parts int) (*value_object.Price, error) {
+	if totalPrice == nil {
+		return nil, errors.ErrInvalidInput
+	}
+
+	if parts <= 0 {
+		return nil, errors.ErrInvalidInput
+	}
+
+	return totalPrice.DivideByInt(parts)
+}
+
+func (c *PriceCalculatorImpl) SumPrices(prices ...*value_object.Price) (*value_object.Price, error) {
+	total := value_object.ZeroPrice()
+
+	for _, price := range prices {
+		if price != nil {
+			var err error
+			total, err = total.Add(price)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return total, nil
 }

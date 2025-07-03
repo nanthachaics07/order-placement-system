@@ -5,7 +5,11 @@ build:
 	go build -o order-placement-system cmd/main.go
 
 test:
-	go test ./... -v
+	go test ./... -coverprofile=coverage.out
+
+test-coverage:
+	go test ./... -coverprofile=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
 
 clean:
 	go clean
