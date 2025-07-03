@@ -1,0 +1,37 @@
+# Go template - Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+.vscode
+
+# Go project files (copied from .gitignore)
+vendor/
+tmp/
+app/app
+app/tmp/
+coverage.out
+.coverage.txt
+LICENSE
+.env
+
+
+# Go test files
+coverage.html
+*.test
+*.out
+*_test.go
+testdata/
+mock/
+
+# IDE files
+.idea/
+out/
+
+# Version control and documentation
+.gitignore
+.git/
+test/
+*.md
+.github
