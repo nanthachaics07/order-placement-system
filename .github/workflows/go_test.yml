@@ -20,6 +20,12 @@ jobs:
       with:
         go-version: '1.24.2'
 
+    - name: Install dependencies
+      run: go mod download
+    - name: Run tests with coverage
+      run: |
+        go test ./... -coverprofile=coverage.out
+
     - name: Test only packages with *_test.go files
       run: |
         for pkg in $(go list ./...); do
