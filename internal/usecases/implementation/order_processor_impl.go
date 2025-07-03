@@ -4,21 +4,24 @@ import (
 	"strconv"
 
 	"order-placement-system/internal/domain/entity"
+	"order-placement-system/internal/domain/service"
 	usecase "order-placement-system/internal/usecases/interfaces"
 	"order-placement-system/pkg/errors"
 	"order-placement-system/pkg/log"
-	"order-placement-system/pkg/utils/parser"
 )
 
 type orderProcessorUseCase struct {
-	productParser           usecase.ProductParser
+	productParser           service.ProductParser
 	complementaryCalculator usecase.ComplementaryCalculator
 }
 
-func NewOrderProcessor() usecase.OrderProcessorUseCase {
+func NewOrderProcessor(
+	parser service.ProductParser,
+	complementaryCalculator usecase.ComplementaryCalculator,
+) usecase.OrderProcessorUseCase {
 	return &orderProcessorUseCase{
-		productParser:           parser.NewProductParser(),
-		complementaryCalculator: NewComplementaryCalculator(),
+		productParser:           parser,
+		complementaryCalculator: complementaryCalculator,
 	}
 }
 
