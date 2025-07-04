@@ -44,7 +44,7 @@ make test
 
 3. **Run With test Cover**
 ```bash
-make test--coverage
+make test-coverage
 ```
 
 4. **Run the application**
