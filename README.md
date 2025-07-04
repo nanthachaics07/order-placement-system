@@ -68,59 +68,89 @@ Server Opening on `http://localhost:8080`
 ##  API Endpoints
 
 ### Process Orders
-**POST** `/api/orders/process`
+**POST** `/api/v1/orders/process`
 
 #### Request Body (Example)
 ```json
-{
-  "orders": [
+[
     {
-      "no": 1,
-      "platformProductId": "FG0A-CLEAR-IPHONE16PROMAX",
-      "qty": 2,
-      "unitPrice": 50.00,
-      "totalPrice": 100.00
+        "no": 1,
+        "platformProductId": "--FG0A-CLEAR-OPPOA3*2/FG0A-MATTE-OPPOA3*2",
+        "qty": 1,
+        "unitPrice": 160,
+        "totalPrice": 160
+    },
+    {
+        "no": 2,
+        "platformProductId": "FG0A-PRIVACY-IPHONE16PROMAX",
+        "qty": 1,
+        "unitPrice": 50,
+        "totalPrice": 50
     }
-  ]
-}
+]
 ```
 
 #### Response
 ```json
 {
-  "success": true,
-  "data": [
-    {
-      "no": 1,
-      "productId": "FG0A-CLEAR-IPHONE16PROMAX",
-      "materialId": "FG0A-CLEAR",
-      "modelId": "IPHONE16PROMAX",
-      "qty": 2,
-      "unitPrice": 50.00,
-      "totalPrice": 100.00
-    },
-    {
-      "no": 2,
-      "productId": "WIPING-CLOTH",
-      "qty": 2,
-      "unitPrice": 0.00,
-      "totalPrice": 0.00
-    },
-    {
-      "no": 3,
-      "productId": "CLEAR-CLEANNER",
-      "qty": 2,
-      "unitPrice": 0.00,
-      "totalPrice": 0.00
-    }
-  ],
-  "stats": {
-    "total_orders": 3,
-    "main_products": 1,
-    "complementary_items": 2,
-    "total_quantity": 4,
-    "total_value": 100.00
-  }
+    "data": [
+        {
+            "no": 1,
+            "productId": "FG0A-CLEAR-OPPOA3",
+            "materialId": "FG0A-CLEAR",
+            "modelId": "OPPOA3",
+            "qty": 2,
+            "unitPrice": 40.00,
+            "totalPrice": 80.00
+        },
+        {
+            "no": 2,
+            "productId": "FG0A-MATTE-OPPOA3",
+            "materialId": "FG0A-MATTE",
+            "modelId": "OPPOA3",
+            "qty": 2,
+            "unitPrice": 40.00,
+            "totalPrice": 80.00
+        },
+        {
+            "no": 3,
+            "productId": "FG0A-PRIVACY-IPHONE16PROMAX",
+            "materialId": "FG0A-PRIVACY",
+            "modelId": "IPHONE16PROMAX",
+            "qty": 1,
+            "unitPrice": 50.00,
+            "totalPrice": 50.00
+        },
+        {
+            "no": 4,
+            "productId": "WIPING-CLOTH",
+            "qty": 5,
+            "unitPrice": 0.00,
+            "totalPrice": 0.00
+        },
+        {
+            "no": 5,
+            "productId": "CLEAR-CLEANNER",
+            "qty": 2,
+            "unitPrice": 0.00,
+            "totalPrice": 0.00
+        },
+        {
+            "no": 6,
+            "productId": "MATTE-CLEANNER",
+            "qty": 2,
+            "unitPrice": 0.00,
+            "totalPrice": 0.00
+        },
+        {
+            "no": 7,
+            "productId": "PRIVACY-CLEANNER",
+            "qty": 1,
+            "unitPrice": 0.00,
+            "totalPrice": 0.00
+        }
+    ],
+    "status": "success"
 }
 ```
 
