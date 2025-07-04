@@ -1,0 +1,37 @@
+# =========================
+# Builder Stage (Build Environment)
+# =========================
+FROM golang:1.24.2 AS builder
+
+ENV GO111MODULE=on
+
+ENV GOPROXY=https://proxy.golang.org,direct
+
+WORKDIR /go/src/order-placement-system
+
+RUN apt-get update && apt-get -qy install \
+    netcat-openbsd \
+    libssl-dev \
+    bash \
+    curl \
+    && wget https://raw.githubusercontent.com/eficode/wait-for/master/wait-for -O /usr/local/bin/wait-for \
+    && chmod +x /usr/local/bin/wait-for \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN go install github.com/air-verse/air@v1.62.0
+
+COPY go.mod go.sum ./
+RUN go version \
+    && go mod download
+
+RUN go get -u github.com/jstemmer/go-junit-report \
+    && go get github.com/axw/gocov/gocov \
+    && go get github.com/AlekSi/gocov-xml
+
+COPY . .
+
+ENV PATH="/go/bin:${PATH}"
+
+RUN cd cmd/ && go build -o /go/bin/app.bin
+
+CMD ["air"]
