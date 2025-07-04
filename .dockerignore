@@ -15,7 +15,7 @@ coverage.out
 .coverage.txt
 LICENSE
 .env
-
+.env.dev
 
 # Go test files
 coverage.html

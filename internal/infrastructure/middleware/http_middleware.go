@@ -11,11 +11,11 @@ import (
 func Setup(engine *gin.Engine) {
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
-	engine.Use(corsMiddleware())
-	engine.Use(errorHandler())
+	engine.Use(CorsMiddleware())
+	engine.Use(ErrorHandler())
 }
 
-func corsMiddleware() gin.HandlerFunc {
+func CorsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Credentials", "true")
@@ -30,7 +30,7 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 }
 
-func errorHandler() gin.HandlerFunc {
+func ErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 
