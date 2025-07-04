@@ -5,6 +5,7 @@
     - Mockery
     - Dynamic Logger
     - Git Workflow
+    (Service Processes Only NONE "context.Context" in Each func)
 
 # Developer
  ```
