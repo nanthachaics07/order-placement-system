@@ -59,7 +59,7 @@ make build-up
 
 6. **Down application**
 ```bash
-make build-up
+make build-down
 ```
 
 Server Opening on `http://localhost:8080`
