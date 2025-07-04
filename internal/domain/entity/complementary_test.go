@@ -348,6 +348,7 @@ func TestComplementaryCalculation_GetTotalComplementaryValue(t *testing.T) {
 			if tt.expectError {
 				assert.Error(t, err)
 				assert.Nil(t, total)
+				assert.Equal(t, errors.ErrInvalidInput, err)
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, total)
@@ -392,8 +393,6 @@ func TestGenerateCleanerId(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Note: generateCleanerId is not exported, so we test it indirectly
-			// through ComplementaryCalculation.AddProduct
 			calc := entity.NewComplementaryCalculation()
 			product := createValidProductWithTexture(t, tt.texture, 1)
 

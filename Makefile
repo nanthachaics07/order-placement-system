@@ -33,9 +33,16 @@ build-up:
 build-down:
 	docker-compose -f resources/docker/docker-compose.dev.yaml down -v
 
-gen-mock-order-processor:
+gen-mock-order-processor-uc:
 	mockery \
 	--name=OrderProcessorUseCase \
 	--dir=internal/usecases/interfaces \
 	--output=internal/mock/usecases \
 	--outpkg=usecases
+
+gen-mock-order-processor-handler:
+	mockery \
+	--name=OrderHandlerInterface \
+	--dir=internal/adapter/handler \
+	--output=internal/mock/handler \
+	--outpkg=handler
