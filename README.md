@@ -1,10 +1,15 @@
 # ORDER-PLACEMENT-SYSTEM
     - Golang
     - Gin
-    - Unittest
+    - Unittest [coverage >= 81.3%]
     - Mockery
     - Dynamic Logger
     - Git Workflow
+
+# Developer
+ ```
+ Nanthachai Intarpradit (SAFE)
+ ```
 
 ## Architecture
 
@@ -18,10 +23,6 @@ internal
     └── Infrastructure Layer (Web Framework & External Libraries)
 ```
 
-# Developer
- ```
- Nanthachai Intarpradit (SAFE)
- ```
 
 ### Installation
 
